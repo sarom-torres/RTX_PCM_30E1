@@ -30,7 +30,7 @@ def realignment(analysis_data):
         if (bit_aux=='1'):
             print("Checking OK. It's auxiliary bit.")
             check_paq = new_data[512:520]
-            #check the paq's second frame
+            #check the paq in second frame
             print("Checking PAQ of second frame...")
             if(check_paq=='10011011'):
                 print("Checking OK. The second frame contain PAQ.")
@@ -47,9 +47,9 @@ def realignment(analysis_data):
 
     return analysis_data
 
-def check_alignment(analysis_data):
+def check_alignment(analysis_data,pos_in,pos_end):
     print ("Checking alignment...")
-    paq = analysis_data.get("data")[512:520]
+    paq = analysis_data.get("data")[pos_in:pos_end]
     return paq == "10011011"
 
 def get_channels(frame):
@@ -58,7 +58,7 @@ def get_channels(frame):
     n_channel = 1
     pos=0
 
-    print("===================================")
+    print("====================================")
     print("               FRAME               ")
     print("========= =============== ==========")
     print("   SLOT       BINARY        HEX ")
@@ -78,9 +78,6 @@ analysis_data = {
     "pos_bit_aux": 257
 }
 
-
-
-count = 1
 print("=================================")
 print('        Receiving package        ')
 print("=================================")
@@ -90,38 +87,34 @@ size_data = len(analysis_data.get("data"))
 
 while size_data != 0:
     
-    if check_alignment(analysis_data) == 1:
+    if check_alignment(analysis_data,512,520) == 1:
         print("Checking OK. It's aligned.")
         frame1 = analysis_data.get("data")[:256]
         frame2 = analysis_data.get("data")[256:512]
+
         print('Reading frame... ')
         get_channels(frame1)
         get_channels(frame2)
         analysis_data["data"] = analysis_data.get("data")[512:None]
-        break
-    else:
+
+        if len(analysis_data.get("data")) < 512:
+            frame3 = analysis_data.get("data")[:256] 
+            get_channels(frame3)   
+            break   
+    else:    
+        if check_alignment(analysis_data,1024,1032) == 1:
+            print("Checking OK. It's aligned.")
+            continue
+
+        if check_alignment(analysis_data,1536,1544) == 1:
+            print("Checking OK. It's aligned.")
+            continue
+
         print("Checking NOT OK. Isn't aligned.")
         print("Realigning...")
         analysis_data = realignment(analysis_data)
 
-    size_data = analysis_data.get("data")  
-    count += 1
+    size_data = len(analysis_data.get("data")) 
 
-print("End of Transmission")
-
-
-""" while count < 10:
-    print('-----------------------ciclo '+ str(count) + ' --------------------------------------------')
-    result = realignment(analysis_data)
-    print('ciclo '+ str(count) +': '+ analysis_data.get("data"))
-    print('!!!!!!!!!!!!!! Lenght New data: '+ str(len(analysis_data.get("data"))))
-    if(result == 1):
-        frame = analysis_data.get("data")[:256]
-        print('Lenght Payload: '+ str(len(frame)))
-        print('FRAME '+ str(count) +': '+ frame)
-        analysis_data["data"] = analysis_data.get("data")[256:None]
-        print('ciclo '+ str(count) +': '+ analysis_data.get("data"))
-    
-    count+=1 """
-
+print("End of Reception")
 
