@@ -6,7 +6,6 @@ def read_file(file_path):
     line = file_data.read()
     return line.replace(" ","")
 
-
 #----------------------------------------|
 #        do the realignment              |
 #----------------------------------------|
@@ -73,53 +72,55 @@ def get_channels(frame,qt_frame):
     qt_frame+=1
     return qt_frame
 
-qt_frame = 0
-data = read_file('data.txt')
-analysis_data = {
-    "data": data,
-    "pos_bit_aux": 257
-}
 
-print("=================================")
-print('        Receiving package        ')
-print("=================================")
-analysis_data = realignment(analysis_data)
+if __name__ == "__main__":
+    qt_frame = 0
+    data = read_file('data.txt')
+    analysis_data = {
+        "data": data,
+        "pos_bit_aux": 257
+    }
 
-size_data = len(analysis_data.get("data"))
+    print("=================================")
+    print('        Receiving package        ')
+    print("=================================")
+    analysis_data = realignment(analysis_data)
 
-while size_data != 0:
-    
-    if check_alignment(analysis_data,512,520) == 1:
-        print("Checking OK. It's aligned.")
-        frame1 = analysis_data.get("data")[:256]
-        frame2 = analysis_data.get("data")[256:512]
+    size_data = len(analysis_data.get("data"))
 
-        print('Reading frame... ')
-        qt_frame = get_channels(frame1,qt_frame)
-        print("\n")
-        qt_frame = get_channels(frame2,qt_frame)
-        print("\n")
-        analysis_data["data"] = analysis_data.get("data")[512:None]
-
-        if len(analysis_data.get("data")) < 512:
-            frame3 = analysis_data.get("data")[:256] 
-            qt_frame = get_channels(frame3,qt_frame)   
-            break   
-    else:    
-        if check_alignment(analysis_data,1024,1032) == 1:
+    while size_data != 0:
+        
+        if check_alignment(analysis_data,512,520) == 1:
             print("Checking OK. It's aligned.")
-            continue
+            frame1 = analysis_data.get("data")[:256]
+            frame2 = analysis_data.get("data")[256:512]
 
-        if check_alignment(analysis_data,1536,1544) == 1:
-            print("Checking OK. It's aligned.")
-            continue
+            print('Reading frame... ')
+            qt_frame = get_channels(frame1,qt_frame)
+            print("\n")
+            qt_frame = get_channels(frame2,qt_frame)
+            print("\n")
+            analysis_data["data"] = analysis_data.get("data")[512:None]
 
-        print("Checking NOT OK. Isn't aligned.")
-        print("Realigning...")
-        analysis_data = realignment(analysis_data)
+            if len(analysis_data.get("data")) < 512:
+                frame3 = analysis_data.get("data")[:256] 
+                qt_frame = get_channels(frame3,qt_frame)   
+                break   
+        else:    
+            if check_alignment(analysis_data,1024,1032) == 1:
+                print("Checking OK. It's aligned.")
+                continue
 
-    size_data = len(analysis_data.get("data")) 
+            if check_alignment(analysis_data,1536,1544) == 1:
+                print("Checking OK. It's aligned.")
+                continue
 
-print("End of Reception")
-print("Number of Frames Received: " + str(qt_frame))
+            print("Checking NOT OK. Isn't aligned.")
+            print("Realigning...")
+            analysis_data = realignment(analysis_data)
+
+        size_data = len(analysis_data.get("data")) 
+
+    print("End of Reception")
+    print("Number of Frames Received: " + str(qt_frame))
 
