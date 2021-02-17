@@ -30,14 +30,14 @@ def realignment(analysis_data):
         if (bit_aux=='1'):
             print("Checking OK. It's auxiliary bit.")
             check_paq = new_data[512:520]
-            #check the paq in second frame
-            print("Checking PAQ of second frame...")
+            #check the paq in third frame
+            print("Checking PAQ of third frame...")
             if(check_paq=='10011011'):
-                print("Checking OK. The second frame contain PAQ.")
+                print("Checking OK. The third frame contain PAQ.")
                 analysis_data["data"] = new_data
                 break
             else:
-                print("Checking NOT OK. The second frame NOT contain PAQ.")
+                print("Checking NOT OK. The third frame NOT contain PAQ.")
                 data = data[pos_temp_paq+1:None]
                 continue
         else:
@@ -52,14 +52,14 @@ def check_alignment(analysis_data,pos_in,pos_end):
     paq = analysis_data.get("data")[pos_in:pos_end]
     return paq == "10011011"
 
-def get_channels(frame):
+def get_channels(frame,qt_frame):
     count=8
     half_count = count/2
     n_channel = 1
     pos=0
 
     print("====================================")
-    print("               FRAME               ")
+    print("               FRAME "+ str(qt_frame+1))
     print("========= =============== ==========")
     print("   SLOT       BINARY        HEX ")
     print("========= =============== ==========")
@@ -70,8 +70,10 @@ def get_channels(frame):
         count+=8
         n_channel+=1
     
+    qt_frame+=1
+    return qt_frame
 
-pos_bit_aux = 257
+qt_frame = 0
 data = read_file('data.txt')
 analysis_data = {
     "data": data,
@@ -93,13 +95,15 @@ while size_data != 0:
         frame2 = analysis_data.get("data")[256:512]
 
         print('Reading frame... ')
-        get_channels(frame1)
-        get_channels(frame2)
+        qt_frame = get_channels(frame1,qt_frame)
+        print("\n")
+        qt_frame = get_channels(frame2,qt_frame)
+        print("\n")
         analysis_data["data"] = analysis_data.get("data")[512:None]
 
         if len(analysis_data.get("data")) < 512:
             frame3 = analysis_data.get("data")[:256] 
-            get_channels(frame3)   
+            qt_frame = get_channels(frame3,qt_frame)   
             break   
     else:    
         if check_alignment(analysis_data,1024,1032) == 1:
@@ -117,4 +121,5 @@ while size_data != 0:
     size_data = len(analysis_data.get("data")) 
 
 print("End of Reception")
+print("Number of Frames Received: " + str(qt_frame))
 
